@@ -9,4 +9,6 @@ import stripe.backend.model.Members;
 public interface MembersRepo extends JpaRepository<Members, Long> {
 
     Members findByEmail(String email);
+
+    Members findByCustomerId(String customerId);
 }

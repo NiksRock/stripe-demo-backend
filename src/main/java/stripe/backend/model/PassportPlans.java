@@ -1,9 +1,6 @@
 package stripe.backend.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -13,7 +10,8 @@ import javax.persistence.*;
 @ToString
 @Entity
 @Table(name = "passport_plans")
-public class PassportPlans {
+public @Data
+class PassportPlans {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

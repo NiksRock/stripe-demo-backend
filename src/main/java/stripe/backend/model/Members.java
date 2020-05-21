@@ -28,5 +28,14 @@ class Members {
     private String description;
 
     @Column
+    private String address;
+
+    @Column
+    private Integer postalCode;
+
+    @Column
+    private Long phoneNumber;
+
+    @Column
     private String customerId;
 }

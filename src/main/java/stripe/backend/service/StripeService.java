@@ -4,11 +4,14 @@ import java.util.Map;
 
 import com.stripe.model.Product;
 
+import io.swagger.models.Response;
 import stripe.backend.responseDTO.GenericResponse;
+
+import javax.persistence.GeneratedValue;
 
 public interface StripeService {
 
-    GenericResponse createCustomer(String email, String token);
+    GenericResponse createCustomer(String email, String paymentMethodId);
 
 	GenericResponse attachPaymentMethodToCustomer(String id, String customerID);
 
@@ -26,7 +29,9 @@ public interface StripeService {
 
     GenericResponse retrieveSubscriptionStatus(String subscriptionId);
 
-    GenericResponse customerPayment(String email, Long cardNumber, Integer expMonth, Integer expYear, Integer cvvNumber, String plan, String coupon);
+    String createSubscription(String customerId, String plan);
+
+    GenericResponse createPaymentMethod(Long cardNumber, Integer expMonth, Integer expYear, Integer cvvNumber);
 
     public String retrieveAllPlan();
 
@@ -34,5 +39,7 @@ public interface StripeService {
 
     public String retrieveAllProducts();
 
-    GenericResponse  createSubscription(String customerId, String plan, String coupon);
+    public String chargeCustomer(String customerId, Long amount, String currency, String paymentId);
+
+    public String secure3DPayment(String paymentMethodId, String customerId);
 }

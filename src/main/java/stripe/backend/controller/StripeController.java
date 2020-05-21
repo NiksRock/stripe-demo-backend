@@ -2,13 +2,7 @@ package stripe.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
 
@@ -20,20 +14,27 @@ public class StripeController {
 
     @GetMapping("/createCustomer")
     @ResponseBody
-    public ResponseEntity<GenericResponse> createCustomerOnStripe(@RequestParam String email,@RequestParam String token) {
-        return ResponseEntity.ok(stripeService.createCustomer(email,token));
+    public ResponseEntity<GenericResponse> createCustomerOnStripe(@RequestParam String email, @RequestParam String token) {
+        return ResponseEntity.ok(stripeService.createCustomer(email, token));
     }
+
     @GetMapping("/attachPaymentMethodToCustomer")
     @ResponseBody
-    public  ResponseEntity<GenericResponse>  attachPaymentMethodToCustomer(@RequestParam String id,@RequestParam String customerID) {
-    	return ResponseEntity.ok(stripeService.attachPaymentMethodToCustomer(id,customerID));
+    public ResponseEntity<GenericResponse> attachPaymentMethodToCustomer(@RequestParam String id, @RequestParam String customerID) {
+        return ResponseEntity.ok(stripeService.attachPaymentMethodToCustomer(id, customerID));
     }
+
+    @PostMapping("/createPaymentMethod")
+    public ResponseEntity<GenericResponse> createPaymentMethod(@RequestParam Long cardNumber, @RequestParam Integer expMonth, @RequestParam Integer expYear, @RequestParam Integer cvvNumber) {
+        return ResponseEntity.ok(stripeService.createPaymentMethod(cardNumber, expMonth, expYear, cvvNumber));
+    }
+
     @GetMapping("/getProductWithPlans")
     @ResponseBody
-    public  ResponseEntity<GenericResponse>  getProductWithPlans() {
-    	return ResponseEntity.ok(stripeService.getProductWithPlans());
+    public ResponseEntity<GenericResponse> getProductWithPlans() {
+        return ResponseEntity.ok(stripeService.getProductWithPlans());
     }
-    
+
     @PostMapping("/createProduct")
     public ResponseEntity<GenericResponse> createProduct(String productName) {
         return ResponseEntity.ok(stripeService.createProduct(productName));
@@ -59,11 +60,6 @@ public class StripeController {
         return ResponseEntity.ok(stripeService.retrieveSubscriptionStatus(subscriptionId));
     }
 
-    @PostMapping("/customerPayment")
-    public ResponseEntity<GenericResponse> customerPayment(String email, Long cardNumber, Integer expMonth, Integer expYear, Integer cvvNumber, String plan, String coupon) {
-        return ResponseEntity.ok(stripeService.customerPayment(email, cardNumber, expMonth, expYear, cvvNumber, plan, coupon));
-    }
-
     @GetMapping("/retrieveAllPlan")
     public String retrieveAllPlan() {
         return stripeService.retrieveAllPlan();
@@ -78,9 +74,26 @@ public class StripeController {
     public String retrieveAllProducts() {
         return stripeService.retrieveAllProducts();
     }
-    @GetMapping("/createSubscription")
-    public ResponseEntity<GenericResponse>  createSubscription(@RequestParam String customerID,@RequestParam String planId,@RequestParam String coupon) {
-    	 return ResponseEntity.ok(stripeService.createSubscription(customerID, planId, coupon));
+
+    @PostMapping("/createSubscription")
+    public String createSubscription(@RequestParam String customerID, @RequestParam String planId) {
+        return stripeService.createSubscription(customerID, planId);
     }
-    
+
+    @PostMapping("/chargeToCustomer")
+    public String chargeToCustomer(@RequestParam String customerId, @RequestParam Long amount, @RequestParam String currency, @RequestParam String paymentId) {
+        return stripeService.chargeCustomer(customerId, amount, currency, paymentId);
+    }
+
+    @PostMapping("/endPoint")
+    public String endPoint() {
+        System.out.println("End Point Called");
+        return "End_Point Called";
+    }
+
+    @GetMapping("/oneTimePayment")
+    public String oneTimePayment(String paymentMethodId, String customerId) {
+        return stripeService.secure3DPayment(paymentMethodId, customerId);
+    }
+
 }
