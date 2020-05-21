@@ -96,4 +96,8 @@ public class StripeController {
         return stripeService.secure3DPayment(paymentMethodId, customerId);
     }
 
+    @GetMapping("/getSubscriptionByEmail")
+    public String getSubscriptionByEmail(@RequestParam String email) {
+        return stripeService.retrieveSubscriptionByEmail(email);
+    }
 }

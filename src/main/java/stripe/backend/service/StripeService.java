@@ -1,23 +1,18 @@
 package stripe.backend.service;
 
-import java.util.Map;
-
-import com.stripe.model.Product;
-
-import io.swagger.models.Response;
 import stripe.backend.responseDTO.GenericResponse;
 
-import javax.persistence.GeneratedValue;
+import java.util.Map;
 
 public interface StripeService {
 
     GenericResponse createCustomer(String email, String paymentMethodId);
 
-	GenericResponse attachPaymentMethodToCustomer(String id, String customerID);
+    GenericResponse attachPaymentMethodToCustomer(String id, String customerID);
 
-	GenericResponse getProductWithPlans();
+    GenericResponse getProductWithPlans();
 
-	Map<String, Object> getProductByID(String id);
+    Map<String, Object> getProductByID(String id);
 
     GenericResponse createProduct(String productName);
 
@@ -42,4 +37,7 @@ public interface StripeService {
     public String chargeCustomer(String customerId, Long amount, String currency, String paymentId);
 
     public String secure3DPayment(String paymentMethodId, String customerId);
+
+    public String retrieveSubscriptionByEmail(String email);
+
 }

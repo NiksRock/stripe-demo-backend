@@ -56,10 +56,7 @@ public class StripeServiceImpl implements StripeService {
                                                         .setPostalCode(members.getPostalCode().toString())
                                                         .setCountry("US")
                                                         .build())
-                                        .setInvoiceSettings(
-                                                CustomerUpdateParams.InvoiceSettings.builder()
-                                                        .setDefaultPaymentMethod(paymentMethodId)
-                                                        .build())
+                                        .setSource(paymentMethodId)
                                         .build();
                         Customer customer = Customer.retrieve(members.getCustomerId());
                         Customer updateCustomer = customer.update(params);
@@ -310,14 +307,7 @@ public class StripeServiceImpl implements StripeService {
                 if (subscriptionId.getCustomerId() != null && !subscriptionId.getCustomerId().isEmpty()) {
                     Subscription subscription = Subscription.retrieve(subscriptionId.getStripeSubscriptionId());
                     if (subscription.getStatus().equalsIgnoreCase("active")) {
-                        Map<String, Object> tempSubscription = new HashMap<>();
-                        tempSubscription.put("status", subscription.getStatus());
-                        tempSubscription.put("amount", subscription.getPlan().getAmount());
-                        tempSubscription.put("plan", subscription.getPlan().getInterval());
-                        tempSubscription.put("planActive", subscription.getPlan().getActive());
-                        Product product = Product.retrieve(subscription.getPlan().getProduct());
-                        tempSubscription.put("product", product.getName());
-                        return tempSubscription.entrySet().toString();
+                        return "Your have subscribed plan and subscription status is " + subscription.getStatus();
                     } else {
                         return "Your subscription package is expired! " + subscription.getStatus();
                     }
@@ -345,7 +335,7 @@ public class StripeServiceImpl implements StripeService {
                 subscriptionBilling.setPaymentStatus(invoice.getStatus());
                 //subscriptionBilling.setPassportPlans();
                 subscriptionRepo.save(subscriptionBilling);
-                return subscription.toJson();
+                return invoice.toJson();
             }
         } catch (Exception e) {
             return "An error while attached subscription to the customer";
@@ -501,6 +491,22 @@ public class StripeServiceImpl implements StripeService {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("message", e.getMessage());
             return gson.toJson(errorResponse);
+        }
+    }
+
+    @Override
+    public String retrieveSubscriptionByEmail(String email) {
+        try {
+            Stripe.apiKey = API_SECRET_KEY;
+            SubscriptionBilling subscriptionBilling = subscriptionRepo.findSubscriptionIdByEmail(email, "active");
+            if (subscriptionBilling != null) {
+                Subscription subscription = Subscription.retrieve(subscriptionBilling.getStripeSubscriptionId());
+                return subscription.toJson();
+            } else {
+                return "This " + email + " is doesn't exist";
+            }
+        } catch (StripeException e) {
+            return e.getMessage();
         }
     }
 }
