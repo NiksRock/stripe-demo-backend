@@ -1,10 +1,13 @@
 package stripe.backend.controller;
 
+import com.stripe.exception.StripeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
+
+import java.util.List;
 
 @RestController
 public class StripeController {
@@ -99,5 +102,10 @@ public class StripeController {
     @GetMapping("/getSubscriptionByEmail")
     public String getSubscriptionByEmail(@RequestParam String email) {
         return stripeService.retrieveSubscriptionByEmail(email);
+    }
+
+    @GetMapping("/retrieveAllCardOfCustomerById")
+    public String retrieveAllCardOfCustomerById(String customerId) throws StripeException {
+        return stripeService.retrieveAllCardOfCustomerById(customerId);
     }
 }

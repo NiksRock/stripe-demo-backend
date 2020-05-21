@@ -16,10 +16,7 @@ import stripe.backend.responseDTO.APIResponseBuilder;
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class StripeServiceImpl implements StripeService {
@@ -508,5 +505,16 @@ public class StripeServiceImpl implements StripeService {
         } catch (StripeException e) {
             return e.getMessage();
         }
+    }
+
+    @Override
+    public String retrieveAllCardOfCustomerById(String customerId) throws StripeException {
+        Stripe.apiKey = API_SECRET_KEY;
+        Customer customer = Customer.retrieve(customerId);
+        Map<String, Object> params = new HashMap<>();
+        params.put("object", "card");
+        params.put("limit", 10);
+        PaymentSourceCollection cards = customer.getSources().list(params);
+        return cards.toJson();
     }
 }

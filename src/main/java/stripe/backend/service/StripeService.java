@@ -1,7 +1,9 @@
 package stripe.backend.service;
 
+import com.stripe.exception.StripeException;
 import stripe.backend.responseDTO.GenericResponse;
 
+import java.util.List;
 import java.util.Map;
 
 public interface StripeService {
@@ -40,4 +42,5 @@ public interface StripeService {
 
     public String retrieveSubscriptionByEmail(String email);
 
+    public String retrieveAllCardOfCustomerById(String customerId) throws StripeException;
 }
