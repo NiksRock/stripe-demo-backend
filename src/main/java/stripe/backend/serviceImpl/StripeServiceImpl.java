@@ -5,7 +5,6 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.*;
-import io.swagger.models.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -479,7 +478,6 @@ public class StripeServiceImpl implements StripeService {
         PaymentIntent intent = null;
         Gson gson = new Gson();
         String email = "techavidus9@gmail.com";
-        Response response = null;
         try {
             if (paymentMethodId != null) {
                 PaymentIntentCreateParams createParams = PaymentIntentCreateParams.builder()
