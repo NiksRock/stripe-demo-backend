@@ -83,9 +83,9 @@ public class StripeController {
         return stripeService.createSubscription(customerID, planId);
     }
 
-    @PostMapping("/chargeToCustomer")
-    public String chargeToCustomer(@RequestParam String customerId, @RequestParam Long amount, @RequestParam String currency, @RequestParam String paymentId) {
-        return stripeService.chargeCustomer(customerId, amount, currency, paymentId);
+    @PostMapping("/paymentIntent")
+    public String paymentIntent(@RequestParam Long amount) {
+        return stripeService.paymentIntent(amount);
     }
 
     @PostMapping("/endPoint")

@@ -36,7 +36,7 @@ public interface StripeService {
 
     public String retrieveAllProducts();
 
-    public String chargeCustomer(String customerId, Long amount, String currency, String paymentId);
+    public String paymentIntent(Long amount);
 
     public String secure3DPayment(String paymentMethodId, String customerId);
 

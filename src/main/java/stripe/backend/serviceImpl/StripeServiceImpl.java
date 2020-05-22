@@ -437,23 +437,20 @@ public class StripeServiceImpl implements StripeService {
     }
 
     @Override
-    public String chargeCustomer(String customerId, Long amount, String currency, String paymentId) {
+    public String paymentIntent(Long amount) {
         try {
             Stripe.apiKey = API_SECRET_KEY;
-            if (customerId != null && amount != null && currency != null) {
-                PaymentIntentCreateParams param =
-                        PaymentIntentCreateParams.builder()
-                                .setAmount(amount)
-                                .setCurrency(currency)
-                                .setCustomer(customerId)
-                                .addPaymentMethodType("card")
-                                .setPaymentMethod(paymentId)
-                                .build();
-
-                PaymentIntent paymentIntent = PaymentIntent.create(param);
-                return paymentIntent.toJson();
+            if (amount != null) {
+                List<Object> paymentMethodTypes = new ArrayList<>();
+                paymentMethodTypes.add("card");
+                Map<String, Object> params = new HashMap<>();
+                params.put("amount", amount);
+                params.put("currency", "inr");
+                params.put("payment_method_types", paymentMethodTypes);
+                PaymentIntent paymentIntent = PaymentIntent.create(params);
+                return paymentIntent.getClientSecret();
             } else {
-                return "All field is required";
+                return "Amount is required";
             }
         } catch (Exception e) {
             return e.getMessage();
