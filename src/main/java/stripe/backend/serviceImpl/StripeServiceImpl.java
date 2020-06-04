@@ -1,13 +1,36 @@
 package stripe.backend.serviceImpl;
 
-import com.google.gson.Gson;
-import com.stripe.Stripe;
-import com.stripe.exception.StripeException;
-import com.stripe.model.*;
-import com.stripe.param.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Coupon;
+import com.stripe.model.CouponCollection;
+import com.stripe.model.Customer;
+import com.stripe.model.Invoice;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.PaymentSourceCollection;
+import com.stripe.model.Plan;
+import com.stripe.model.PlanCollection;
+import com.stripe.model.Product;
+import com.stripe.model.ProductCollection;
+import com.stripe.model.Subscription;
+import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.CustomerUpdateParams;
+import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.PaymentMethodAttachParams;
+import com.stripe.param.ProductCreateParams;
+
 import stripe.backend.model.Members;
 import stripe.backend.model.SubscriptionBilling;
 import stripe.backend.repo.MembersRepo;
@@ -15,8 +38,6 @@ import stripe.backend.repo.SubscriptionRepo;
 import stripe.backend.responseDTO.APIResponseBuilder;
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
-
-import java.util.*;
 
 @Service
 public class StripeServiceImpl implements StripeService {
@@ -40,23 +61,22 @@ public class StripeServiceImpl implements StripeService {
                     if (members.getCustomerId() != null && !members.getCustomerId().isEmpty()) {
                         // update customer unique id here to track them in your web application
                         //update a exist customer
-
                         CustomerUpdateParams params =
                                 CustomerUpdateParams.builder()
                                         .setEmail(email)
                                         .setName(members.getName())
                                         .setDescription("Customer for" + email)
                                         .setPhone(members.getPhoneNumber().toString())
-                                        .setAddress(
-                                                CustomerUpdateParams.Address.builder()
+                                        .setAddress(CustomerUpdateParams.Address.builder()
                                                         .setLine1(members.getAddress())
                                                         .setPostalCode(members.getPostalCode().toString())
                                                         .setCountry("US")
                                                         .build())
-                                        .setSource(paymentMethodId)
                                         .build();
                         Customer customer = Customer.retrieve(members.getCustomerId());
                         Customer updateCustomer = customer.update(params);
+                        PaymentMethod pm = PaymentMethod.retrieve(paymentMethodId);
+                        pm.attach(PaymentMethodAttachParams.builder().setCustomer(updateCustomer.getId()).build());
                         return APIResponseBuilder.build(true, updateCustomer.getId(), "Customer updated successfully");
                     } else {
                         // add customer unique id here to track them in your web application

@@ -78,12 +78,12 @@ public class StripeController {
         return stripeService.retrieveAllProducts();
     }
 
-    @PostMapping("/createSubscription")
+    @GetMapping("/createSubscription")
     public String createSubscription(@RequestParam String customerID, @RequestParam String planId) {
         return stripeService.createSubscription(customerID, planId);
     }
 
-    @PostMapping("/paymentIntent")
+    @GetMapping ("/paymentIntent")
     public String paymentIntent(@RequestParam Long amount) {
         return stripeService.paymentIntent(amount);
     }
