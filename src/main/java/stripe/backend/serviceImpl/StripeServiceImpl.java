@@ -1,13 +1,13 @@
 package stripe.backend.serviceImpl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -34,6 +34,7 @@ import com.stripe.param.ProductCreateParams;
 import com.stripe.param.checkout.SessionCreateParams.SubscriptionData;
 import com.stripe.param.checkout.SessionCreateParams.SubscriptionData.Item;
 
+import org.springframework.web.client.RestTemplate;
 import stripe.backend.model.Members;
 import stripe.backend.model.SubscriptionBilling;
 import stripe.backend.repo.MembersRepo;
@@ -41,6 +42,8 @@ import stripe.backend.repo.SubscriptionRepo;
 import stripe.backend.responseDTO.APIResponseBuilder;
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Service
 public class StripeServiceImpl implements StripeService {
@@ -53,6 +56,8 @@ public class StripeServiceImpl implements StripeService {
 
     @Autowired
     private SubscriptionRepo subscriptionRepo;
+
+    private final String REDIRECT_URL = "http://localhost:3000";
 
     @Override
     public GenericResponse createCustomer(String email, String paymentMethodId) {
@@ -563,5 +568,41 @@ public class StripeServiceImpl implements StripeService {
 		}
 		 
 	}
-    
+
+    @Override
+    public GenericResponse getCustomerAndSubscriptionDetails(String sessionId) {
+        try {
+            Stripe.apiKey = API_SECRET_KEY;
+            Session session = Session.retrieve(sessionId);
+            Customer customer = session.getCustomerObject();
+            System.out.println(customer);
+            Subscription subscription = session.getSubscriptionObject();
+            String invoiceId = subscription.getLatestInvoice();
+            Invoice invoice = Invoice.retrieve(invoiceId);
+            // redirect url
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+            HttpEntity<String> request = new HttpEntity<String>(headers);
+            restTemplate.exchange(REDIRECT_URL, HttpMethod.GET, request, String.class);
+            return APIResponseBuilder.build(true, invoice.toJson(), "Get Invoice successfully");
+        } catch (StripeException e) {
+            return APIResponseBuilder.build(false, e.getMessage(), "While getting customer and subscription detail");
+        }
+    }
+
+    @Override
+    public GenericResponse cancel() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+            HttpEntity<String> request = new HttpEntity<String>(headers);
+            restTemplate.exchange(REDIRECT_URL, HttpMethod.GET, request, String.class);
+            return APIResponseBuilder.build(true, "You have cancel request");
+        } catch (Exception e) {
+            return APIResponseBuilder.build(false, e.getMessage(), "Exception");
+        }
+    }
+
 }
