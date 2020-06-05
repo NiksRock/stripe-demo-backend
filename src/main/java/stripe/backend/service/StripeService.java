@@ -45,4 +45,8 @@ public interface StripeService {
     public String retrieveAllCardOfCustomerById(String customerId) throws StripeException;
     
     public GenericResponse createCheckoutSession(String planID,String customerID);
+
+    public GenericResponse getCustomerAndSubscriptionDetails(String sessionId);
+
+    public GenericResponse cancel();
 }

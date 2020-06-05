@@ -2,12 +2,7 @@ package stripe.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.stripe.exception.StripeException;
 
@@ -120,5 +115,15 @@ public class StripeController {
     @GetMapping("/createCheckoutSession")
     public  ResponseEntity<GenericResponse> createCheckoutSession(@RequestParam String planId,@RequestParam String customerID) {
     	return ResponseEntity.ok( stripeService.createCheckoutSession(planId,customerID));
+    }
+
+    @GetMapping("/success")
+    public ResponseEntity<GenericResponse> getCustomerAndSubscriptionDetails(@RequestParam String sessionId) {
+        return ResponseEntity.ok(stripeService.getCustomerAndSubscriptionDetails(sessionId));
+    }
+
+    @GetMapping("/cancel")
+    public ResponseEntity<GenericResponse> getCustomerAndSubscriptionDetails() {
+        return ResponseEntity.ok(stripeService.cancel());
     }
 }
