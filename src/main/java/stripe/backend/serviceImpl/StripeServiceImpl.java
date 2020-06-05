@@ -118,6 +118,65 @@ public class StripeServiceImpl implements StripeService {
     }
 
     @Override
+	public GenericResponse createCustomer(String email) 
+	{
+        try {
+            if (email != null) {
+                Members members = membersRepo.findByEmail(email);
+                if (members != null) {
+                    Stripe.apiKey = API_SECRET_KEY;
+                    if (members.getCustomerId() != null && !members.getCustomerId().isEmpty()) {
+                        // update customer unique id here to track them in your web application
+                        //update a exist customer
+                        CustomerUpdateParams params =
+                                CustomerUpdateParams.builder()
+                                        .setEmail(email)
+                                        .setName(members.getName())
+                                        .setDescription("Customer for" + email)
+                                        .setPhone(members.getPhoneNumber().toString())
+                                        .setAddress(CustomerUpdateParams.Address.builder()
+                                                        .setLine1(members.getAddress())
+                                                        .setPostalCode(members.getPostalCode().toString())
+                                                        .setCountry("US")
+                                                        .build())
+                                        .build();
+                        Customer customer = Customer.retrieve(members.getCustomerId());
+                        Customer updateCustomer = customer.update(params);
+                        return APIResponseBuilder.build(true, updateCustomer.getId(), "Customer updated successfully");
+                    } else {
+                        // add customer unique id here to track them in your web application
+                        CustomerCreateParams params =
+                                CustomerCreateParams.builder()
+                                        .setEmail(email)
+                                        .setName(members.getName())
+                                        .setDescription("Customer for " + email)
+                                        .setPhone(members.getPhoneNumber().toString())
+                                        .setAddress(
+                                                CustomerCreateParams.Address.builder()
+                                                        .setLine1(members.getAddress())
+                                                        .setPostalCode(members.getPostalCode().toString())
+                                                        .setCountry("US")
+                                                        .build())
+                                        .setInvoiceSettings(
+                                                CustomerCreateParams.InvoiceSettings.builder()
+                                                        .build())
+                                        .build();
+                        Customer newCustomer = Customer.create(params);
+                        members.setCustomerId(newCustomer.getId());
+                        membersRepo.save(members);
+                        return APIResponseBuilder.build(true, newCustomer.getId(), "Customer created successfully");
+                    }
+                } else {
+                    return APIResponseBuilder.build(false, email, "This email does not exits");
+                }
+            } else {
+                return APIResponseBuilder.build(false, email, "Email is required");
+            }
+        } catch (Exception ex) {
+            return APIResponseBuilder.build(false, ex.getMessage(), "while creating customer");
+        }
+    }
+    @Override
     public GenericResponse attachPaymentMethodToCustomer(String id, String customerID) {
         Stripe.apiKey = API_SECRET_KEY;
         try {
@@ -540,7 +599,7 @@ public class StripeServiceImpl implements StripeService {
     }
 
 	@Override
-	public GenericResponse createCheckoutSession(String planID) {
+	public GenericResponse createCheckoutSession(String planID,String customerID) {
 		try {
 			Stripe.apiKey = API_SECRET_KEY;
 			 Map<String, Object> params = new HashMap<String, Object>();
@@ -554,6 +613,7 @@ public class StripeServiceImpl implements StripeService {
 			 Map<String, Object> items = new HashMap<String, Object>();
 			 items.put("items",itelList);
 			 params.put("subscription_data",items);	
+			 params.put("customer",customerID);	
 			 params.put("success_url", "http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}");
 			 params.put("cancel_url", "http://localhost:3000/cancel");
 			 Session session = Session.create(params);
@@ -563,5 +623,7 @@ public class StripeServiceImpl implements StripeService {
 		}
 		 
 	}
+
+	
     
 }

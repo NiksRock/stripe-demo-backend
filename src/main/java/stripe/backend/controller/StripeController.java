@@ -23,7 +23,10 @@ public class StripeController {
     @GetMapping("/createCustomer")
     @ResponseBody
     public ResponseEntity<GenericResponse> createCustomerOnStripe(@RequestParam String email, @RequestParam String token) {
+    	if (!token.equals(""))
         return ResponseEntity.ok(stripeService.createCustomer(email, token));
+    	else
+    	return ResponseEntity.ok(stripeService.createCustomer(email));
     }
 
     @GetMapping("/attachPaymentMethodToCustomer")
@@ -115,7 +118,7 @@ public class StripeController {
     }
     
     @GetMapping("/createCheckoutSession")
-    public  ResponseEntity<GenericResponse> createCheckoutSession(@RequestParam String planId) {
-    	return ResponseEntity.ok( stripeService.createCheckoutSession(planId));
+    public  ResponseEntity<GenericResponse> createCheckoutSession(@RequestParam String planId,@RequestParam String customerID) {
+    	return ResponseEntity.ok( stripeService.createCheckoutSession(planId,customerID));
     }
 }
