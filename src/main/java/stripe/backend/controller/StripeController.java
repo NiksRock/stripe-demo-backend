@@ -1,13 +1,18 @@
 package stripe.backend.controller;
 
-import com.stripe.exception.StripeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.stripe.exception.StripeException;
+
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
-
-import java.util.List;
 
 @RestController
 public class StripeController {
@@ -79,8 +84,8 @@ public class StripeController {
     }
 
     @GetMapping("/createSubscription")
-    public String createSubscription(@RequestParam String customerID, @RequestParam String planId) {
-        return stripeService.createSubscription(customerID, planId);
+    public ResponseEntity<GenericResponse> createSubscription(@RequestParam String customerID, @RequestParam String planId) {
+        return ResponseEntity.ok(stripeService.createSubscription(customerID, planId));
     }
 
     @GetMapping ("/paymentIntent")
@@ -100,12 +105,17 @@ public class StripeController {
     }
 
     @GetMapping("/getSubscriptionByEmail")
-    public String getSubscriptionByEmail(@RequestParam String email) {
-        return stripeService.retrieveSubscriptionByEmail(email);
+    public ResponseEntity<GenericResponse> getSubscriptionByEmail(@RequestParam String email) {
+    	  return ResponseEntity.ok( stripeService.retrieveSubscriptionByEmail(email));
     }
 
     @GetMapping("/retrieveAllCardOfCustomerById")
     public String retrieveAllCardOfCustomerById(String customerId) throws StripeException {
         return stripeService.retrieveAllCardOfCustomerById(customerId);
+    }
+    
+    @GetMapping("/createCheckoutSession")
+    public  ResponseEntity<GenericResponse> createCheckoutSession(@RequestParam String planId) {
+    	return ResponseEntity.ok( stripeService.createCheckoutSession(planId));
     }
 }

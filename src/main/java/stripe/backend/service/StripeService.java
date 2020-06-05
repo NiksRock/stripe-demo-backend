@@ -26,7 +26,7 @@ public interface StripeService {
 
     GenericResponse retrieveSubscriptionStatus(String subscriptionId);
 
-    String createSubscription(String customerId, String plan);
+    GenericResponse createSubscription(String customerId, String plan);
 
     GenericResponse createPaymentMethod(Long cardNumber, Integer expMonth, Integer expYear, Integer cvvNumber);
 
@@ -40,7 +40,9 @@ public interface StripeService {
 
     public String secure3DPayment(String paymentMethodId, String customerId);
 
-    public String retrieveSubscriptionByEmail(String email);
+    public GenericResponse retrieveSubscriptionByEmail(String email);
 
     public String retrieveAllCardOfCustomerById(String customerId) throws StripeException;
+    
+    public GenericResponse createCheckoutSession(String planID);
 }
