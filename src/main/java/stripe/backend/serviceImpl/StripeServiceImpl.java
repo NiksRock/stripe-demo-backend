@@ -638,8 +638,21 @@ public class StripeServiceImpl implements StripeService {
             Session session = Session.retrieve(sessionId);
             Customer customer = Customer.retrieve(session.getCustomer()); 
             Subscription subscription = Subscription.retrieve(session.getSubscription());
+
+            // we have to required to first save customerId into Member table at that time of customer create otherwise member id is not saved into SubscriptionBilling table
+            SubscriptionBilling subscriptionBilling = new SubscriptionBilling();
+            Members members = membersRepo.findByCustomerId(customer.getId());
+            subscriptionBilling.setCustomerId(customer.getId());
+            subscriptionBilling.setCreatedDate(new Date());
+            subscriptionBilling.setStripeSubscriptionId(subscription.getId());
+            subscriptionBilling.setMembers(members);
+            subscriptionBilling.setAmount(subscription.getPlan().getAmount());
+            subscriptionBilling.setStatus(subscription.getStatus());
             String invoiceId = subscription.getLatestInvoice();
             Invoice invoice = Invoice.retrieve(invoiceId);
+            subscriptionBilling.setPaymentStatus(invoice.getStatus());
+            subscriptionRepo.save(subscriptionBilling);
+
             // redirect url
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
