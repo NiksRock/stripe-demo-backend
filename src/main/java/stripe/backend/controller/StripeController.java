@@ -118,8 +118,8 @@ public class StripeController {
     }
 
     @GetMapping("/success")
-    public ResponseEntity<GenericResponse> getCustomerAndSubscriptionDetails(@RequestParam String sessionId) {
-        return ResponseEntity.ok(stripeService.getCustomerAndSubscriptionDetails(sessionId));
+    public ResponseEntity<GenericResponse> getCustomerAndSubscriptionDetails(@RequestParam String session_id) {
+        return ResponseEntity.ok(stripeService.getCustomerAndSubscriptionDetails(session_id));
     }
 
     @GetMapping("/cancel")

@@ -619,8 +619,8 @@ public class StripeServiceImpl implements StripeService {
 			 items.put("items",itelList);
 			 params.put("subscription_data",items);	
 			 params.put("customer",customerID);	
-			 params.put("success_url", "http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}");
-			 params.put("cancel_url", "http://localhost:3000/cancel");
+			 params.put("success_url", "http://localhost:8081/api/success?session_id={CHECKOUT_SESSION_ID}");
+			 params.put("cancel_url", "http://localhost:8081/api/cancel");
 			 Session session = Session.create(params);
 			 return APIResponseBuilder.build(true, session.getId(), "Your have subscribed plan");
 		} catch (Exception e) {
@@ -636,9 +636,8 @@ public class StripeServiceImpl implements StripeService {
         try {
             Stripe.apiKey = API_SECRET_KEY;
             Session session = Session.retrieve(sessionId);
-            Customer customer = session.getCustomerObject();
-            System.out.println(customer);
-            Subscription subscription = session.getSubscriptionObject();
+            Customer customer = Customer.retrieve(session.getCustomer()); 
+            Subscription subscription = Subscription.retrieve(session.getSubscription());
             String invoiceId = subscription.getLatestInvoice();
             Invoice invoice = Invoice.retrieve(invoiceId);
             // redirect url
