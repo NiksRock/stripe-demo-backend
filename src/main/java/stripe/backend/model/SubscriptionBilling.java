@@ -47,4 +47,12 @@ class SubscriptionBilling {
     @ManyToOne
     @JoinColumn(name = "passportPlanId")
     private PassportPlans passportPlans;
+
+    @Column
+    private Boolean cancelAtPeriodEnd;
+
+    @Column
+    private Date reActivatedDate;
+
+
 }

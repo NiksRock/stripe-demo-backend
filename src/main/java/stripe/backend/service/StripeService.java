@@ -49,4 +49,8 @@ public interface StripeService {
     public GenericResponse getCustomerAndSubscriptionDetails(String sessionId);
 
     public GenericResponse cancel();
+
+    public String updateCancelledSubscription(String subscriptionId);
+
+    public String subCancel(String subscriptionId);
 }
