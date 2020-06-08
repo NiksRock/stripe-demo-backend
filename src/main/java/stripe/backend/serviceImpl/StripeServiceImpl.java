@@ -2,6 +2,7 @@ package stripe.backend.serviceImpl;
 
 import java.util.*;
 
+import com.stripe.param.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -26,11 +27,6 @@ import com.stripe.model.Product;
 import com.stripe.model.ProductCollection;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
-import com.stripe.param.CustomerCreateParams;
-import com.stripe.param.CustomerUpdateParams;
-import com.stripe.param.PaymentIntentCreateParams;
-import com.stripe.param.PaymentMethodAttachParams;
-import com.stripe.param.ProductCreateParams;
 import com.stripe.param.checkout.SessionCreateParams.SubscriptionData;
 import com.stripe.param.checkout.SessionCreateParams.SubscriptionData.Item;
 
@@ -676,6 +672,63 @@ public class StripeServiceImpl implements StripeService {
             return APIResponseBuilder.build(true, "You have cancel request");
         } catch (Exception e) {
             return APIResponseBuilder.build(false, e.getMessage(), "Exception");
+        }
+    }
+
+    @Override
+    public String updateCancelledSubscription(String subscriptionId) {
+        try{
+            Stripe.apiKey = API_SECRET_KEY;
+            Subscription subscription = Subscription.retrieve(subscriptionId);
+            if (subscription.getCancelAtPeriodEnd() == false) {
+                return  "Your subscription is already active";
+            } else {
+                SubscriptionUpdateParams params =
+                        SubscriptionUpdateParams.builder()
+                                .setCancelAtPeriodEnd(false)
+                                .setProrationBehavior(SubscriptionUpdateParams.ProrationBehavior.CREATE_PRORATIONS)
+                                .addItem(
+                                        SubscriptionUpdateParams.Item.builder()
+                                                .setId(subscription.getItems().getData().get(0).getId())
+                                                .setPlan(subscription.getPlan().getId())
+                                                .build())
+                                .build();
+
+                subscription.update(params);
+
+                Subscription reActivatedSubscription = Subscription.retrieve(subscriptionId);
+                SubscriptionBilling subscriptionBilling = subscriptionRepo.findByStripeSubscriptionId(reActivatedSubscription.getId());
+                subscriptionBilling.setCancelAtPeriodEnd(false);
+                subscriptionBilling.setReActivatedDate(new Date());
+                subscriptionRepo.save(subscriptionBilling);
+
+                Invoice invoice = Invoice.retrieve(subscription.getLatestInvoice());
+                return "Your subscription is re-activated";
+            }
+        }catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @Override
+    public String subCancel(String subscriptionId) {
+        try {
+            Stripe.apiKey = API_SECRET_KEY;
+            Subscription subscription = Subscription.retrieve(subscriptionId);
+            SubscriptionUpdateParams params =
+                    SubscriptionUpdateParams.builder()
+                            .setCancelAtPeriodEnd(true)
+                            .build();
+            subscription.update(params);
+            Subscription canceledSubscription = Subscription.retrieve(subscriptionId);
+            SubscriptionBilling subscriptionBilling = subscriptionRepo.findByStripeSubscriptionId(subscriptionId);
+            subscriptionBilling.setStatus(canceledSubscription.getStatus());
+            subscriptionBilling.setCanceledDated(new Date());
+            subscriptionBilling.setCancelAtPeriodEnd(true);
+            subscriptionRepo.save(subscriptionBilling);
+            return "Your subscription is cancel automatically at the period end";
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 

@@ -141,4 +141,14 @@ public class StripeController {
     public ResponseEntity<GenericResponse> getCustomerAndSubscriptionDetails() {
         return ResponseEntity.ok(stripeService.cancel());
     }
+
+    @GetMapping("/subCancel")
+    public String subCancel(@RequestParam String subscriptionId) {
+        return stripeService.subCancel(subscriptionId);
+    }
+
+    @GetMapping("/updateSubscription")
+    public String updateSubscription(@RequestParam String subscriptionId) {
+        return stripeService.updateCancelledSubscription(subscriptionId);
+    }
 }
