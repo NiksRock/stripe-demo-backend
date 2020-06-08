@@ -72,10 +72,10 @@ public class StripeServiceImpl implements StripeService {
                                         .setDescription("Customer for" + email)
                                         .setPhone(members.getPhoneNumber().toString())
                                         .setAddress(CustomerUpdateParams.Address.builder()
-                                                        .setLine1(members.getAddress())
-                                                        .setPostalCode(members.getPostalCode().toString())
-                                                        .setCountry("US")
-                                                        .build())
+                                                .setLine1(members.getAddress())
+                                                .setPostalCode(members.getPostalCode().toString())
+                                                .setCountry("US")
+                                                .build())
                                         .build();
                         Customer customer = Customer.retrieve(members.getCustomerId());
                         Customer updateCustomer = customer.update(params);
@@ -119,8 +119,7 @@ public class StripeServiceImpl implements StripeService {
     }
 
     @Override
-	public GenericResponse createCustomer(String email) 
-	{
+    public GenericResponse createCustomer(String email) {
         try {
             if (email != null) {
                 Members members = membersRepo.findByEmail(email);
@@ -136,10 +135,10 @@ public class StripeServiceImpl implements StripeService {
                                         .setDescription("Customer for" + email)
                                         .setPhone(members.getPhoneNumber().toString())
                                         .setAddress(CustomerUpdateParams.Address.builder()
-                                                        .setLine1(members.getAddress())
-                                                        .setPostalCode(members.getPostalCode().toString())
-                                                        .setCountry("US")
-                                                        .build())
+                                                .setLine1(members.getAddress())
+                                                .setPostalCode(members.getPostalCode().toString())
+                                                .setCountry("US")
+                                                .build())
                                         .build();
                         Customer customer = Customer.retrieve(members.getCustomerId());
                         Customer updateCustomer = customer.update(params);
@@ -177,6 +176,7 @@ public class StripeServiceImpl implements StripeService {
             return APIResponseBuilder.build(false, ex.getMessage(), "while creating customer");
         }
     }
+
     @Override
     public GenericResponse attachPaymentMethodToCustomer(String id, String customerID) {
         Stripe.apiKey = API_SECRET_KEY;
@@ -387,21 +387,21 @@ public class StripeServiceImpl implements StripeService {
                 if (subscriptionId.getCustomerId() != null && !subscriptionId.getCustomerId().isEmpty()) {
                     Subscription subscription = Subscription.retrieve(subscriptionId.getStripeSubscriptionId());
                     if (subscription.getStatus().equalsIgnoreCase("active")) {
-                    	  return APIResponseBuilder.build(true, "Your have subscribed plan and subscription status is " + subscription.getStatus(), "Your have subscribed plan and subscription");
-                          
+                        return APIResponseBuilder.build(true, "Your have subscribed plan and subscription status is " + subscription.getStatus(), "Your have subscribed plan and subscription");
+
                     } else {
-                    	 return APIResponseBuilder.build(true, "Your subscription package is expired! " + subscription.getStatus(),"expired");
+                        return APIResponseBuilder.build(true, "Your subscription package is expired! " + subscription.getStatus(), "expired");
                     }
                 }
             } else {
                 //create subscription
                 String subId = this.subscription(customerId, plan);
                 if (subId == null) {
-                	return APIResponseBuilder.build(true, "An error occurred while trying to create a subscription.","");
+                    return APIResponseBuilder.build(true, "An error occurred while trying to create a subscription.", "");
                 }
                 Subscription subscription = Subscription.retrieve(subId);
                 if (subscription.getStatus().equalsIgnoreCase("incomplete") && subscription.getStatus().equalsIgnoreCase("trialing")) {
-                	return APIResponseBuilder.build(true,"Your payment is incomplete! please try again","");
+                    return APIResponseBuilder.build(true, "Your payment is incomplete! please try again", "");
                 }
                 Members members = membersRepo.findByCustomerId(customerId);
                 SubscriptionBilling subscriptionBilling = new SubscriptionBilling();
@@ -416,10 +416,10 @@ public class StripeServiceImpl implements StripeService {
                 subscriptionBilling.setPaymentStatus(invoice.getStatus());
                 //subscriptionBilling.setPassportPlans();
                 subscriptionRepo.save(subscriptionBilling);
-                return APIResponseBuilder.build(true, invoice.toJson(),"");
+                return APIResponseBuilder.build(true, invoice.toJson(), "");
             }
         } catch (Exception e) {
-        	return APIResponseBuilder.build(true,"An error while attached subscription to the customer","");
+            return APIResponseBuilder.build(true, "An error while attached subscription to the customer", "");
         }
         return null;
     }
@@ -581,10 +581,10 @@ public class StripeServiceImpl implements StripeService {
                 Subscription subscription = Subscription.retrieve(subscriptionBilling.getStripeSubscriptionId());
                 return APIResponseBuilder.build(true, subscription.toJson(), "Your have subscribed plan");
             } else {
-            	 return APIResponseBuilder.build(false, "This " + email + " is doesn't exist", "");
+                return APIResponseBuilder.build(false, "This " + email + " is doesn't exist", "");
             }
         } catch (StripeException e) {
-       	 return APIResponseBuilder.build(false, e.getMessage(), "");
+            return APIResponseBuilder.build(false, e.getMessage(), "");
         }
     }
 
@@ -599,40 +599,39 @@ public class StripeServiceImpl implements StripeService {
         return cards.toJson();
     }
 
-	@Override
-	public GenericResponse createCheckoutSession(String planID,String customerID) {
-		try {
-			Stripe.apiKey = API_SECRET_KEY;
-			 Map<String, Object> params = new HashMap<String, Object>();
-			 ArrayList<String> paymentMethodTypes = new ArrayList<>();
-			 paymentMethodTypes.add("card");
-			 params.put("payment_method_types", paymentMethodTypes);
-			 ArrayList<Object> itelList = new ArrayList<>();
-			 Map<String, Object> item = new HashMap<String, Object>();
-			 item.put("plan",planID);
-			 itelList.add(item);
-			 Map<String, Object> items = new HashMap<String, Object>();
-			 items.put("items",itelList);
-			 params.put("subscription_data",items);	
-			 params.put("customer",customerID);	
-			 params.put("success_url", "http://localhost:8081/api/success?session_id={CHECKOUT_SESSION_ID}");
-			 params.put("cancel_url", "http://localhost:8081/api/cancel");
-			 Session session = Session.create(params);
-			 return APIResponseBuilder.build(true, session.getId(), "Your have subscribed plan");
-		} catch (Exception e) {
-			return APIResponseBuilder.build(false, e.getMessage(), "Your have subscribed plan");
-		}
-		 
-	}
+    @Override
+    public GenericResponse createCheckoutSession(String planID, String customerID) {
+        try {
+            Stripe.apiKey = API_SECRET_KEY;
+            Map<String, Object> params = new HashMap<String, Object>();
+            ArrayList<String> paymentMethodTypes = new ArrayList<>();
+            paymentMethodTypes.add("card");
+            params.put("payment_method_types", paymentMethodTypes);
+            ArrayList<Object> itelList = new ArrayList<>();
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put("plan", planID);
+            itelList.add(item);
+            Map<String, Object> items = new HashMap<String, Object>();
+            items.put("items", itelList);
+            params.put("subscription_data", items);
+            params.put("customer", customerID);
+            params.put("success_url", "http://localhost:8081/api/success?session_id={CHECKOUT_SESSION_ID}");
+            params.put("cancel_url", "http://localhost:8081/api/cancel");
+            Session session = Session.create(params);
+            return APIResponseBuilder.build(true, session.getId(), "Your have subscribed plan");
+        } catch (Exception e) {
+            return APIResponseBuilder.build(false, e.getMessage(), "Your have subscribed plan");
+        }
 
-	
-    
+    }
+
+
     @Override
     public GenericResponse getCustomerAndSubscriptionDetails(String sessionId) {
         try {
             Stripe.apiKey = API_SECRET_KEY;
             Session session = Session.retrieve(sessionId);
-            Customer customer = Customer.retrieve(session.getCustomer()); 
+            Customer customer = Customer.retrieve(session.getCustomer());
             Subscription subscription = Subscription.retrieve(session.getSubscription());
 
             // we have to required to first save customerId into Member table at that time of customer create otherwise member id is not saved into SubscriptionBilling table
@@ -676,12 +675,12 @@ public class StripeServiceImpl implements StripeService {
     }
 
     @Override
-    public String updateCancelledSubscription(String subscriptionId) {
-        try{
+    public GenericResponse updateCancelledSubscription(String subscriptionId) {
+        try {
             Stripe.apiKey = API_SECRET_KEY;
             Subscription subscription = Subscription.retrieve(subscriptionId);
             if (subscription.getCancelAtPeriodEnd() == false) {
-                return  "Your subscription is already active";
+                return APIResponseBuilder.build(true, subscription, "Your subscription is already active");
             } else {
                 SubscriptionUpdateParams params =
                         SubscriptionUpdateParams.builder()
@@ -701,17 +700,15 @@ public class StripeServiceImpl implements StripeService {
                 subscriptionBilling.setCancelAtPeriodEnd(false);
                 subscriptionBilling.setReActivatedDate(new Date());
                 subscriptionRepo.save(subscriptionBilling);
-
-                Invoice invoice = Invoice.retrieve(subscription.getLatestInvoice());
-                return "Your subscription is re-activated";
+                return APIResponseBuilder.build(true, subscription.toJson(), "Your subscription is re-activated");
             }
-        }catch (Exception e) {
-            return e.getMessage();
+        } catch (Exception e) {
+            return APIResponseBuilder.build(false, e.getMessage(),"Exception while update subscription");
         }
     }
 
     @Override
-    public String subCancel(String subscriptionId) {
+    public GenericResponse subCancel(String subscriptionId) {
         try {
             Stripe.apiKey = API_SECRET_KEY;
             Subscription subscription = Subscription.retrieve(subscriptionId);
@@ -726,9 +723,9 @@ public class StripeServiceImpl implements StripeService {
             subscriptionBilling.setCanceledDated(new Date());
             subscriptionBilling.setCancelAtPeriodEnd(true);
             subscriptionRepo.save(subscriptionBilling);
-            return "Your subscription is cancel automatically at the period end";
+            return APIResponseBuilder.build(true, subscription.toJson(),"Your subscription is cancel automatically at the period end");
         } catch (Exception e) {
-            return e.getMessage();
+            return APIResponseBuilder.build(false, e.getMessage(),"Exception while cancel subscription");
         }
     }
 

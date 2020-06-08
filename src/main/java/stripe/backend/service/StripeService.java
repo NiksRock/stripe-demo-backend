@@ -50,7 +50,7 @@ public interface StripeService {
 
     public GenericResponse cancel();
 
-    public String updateCancelledSubscription(String subscriptionId);
+    public GenericResponse updateCancelledSubscription(String subscriptionId);
 
-    public String subCancel(String subscriptionId);
+    public GenericResponse subCancel(String subscriptionId);
 }

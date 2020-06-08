@@ -128,12 +128,12 @@ public class StripeController {
     }
 
     @GetMapping("/subCancel")
-    public String subCancel(@RequestParam String subscriptionId) {
-        return stripeService.subCancel(subscriptionId);
+    public ResponseEntity<GenericResponse> subCancel(@RequestParam String subscriptionId) {
+        return ResponseEntity.ok(stripeService.subCancel(subscriptionId));
     }
 
     @GetMapping("/updateSubscription")
-    public String updateSubscription(@RequestParam String subscriptionId) {
-        return stripeService.updateCancelledSubscription(subscriptionId);
+    public ResponseEntity<GenericResponse> updateSubscription(@RequestParam String subscriptionId) {
+        return ResponseEntity.ok(stripeService.updateCancelledSubscription(subscriptionId));
     }
 }
