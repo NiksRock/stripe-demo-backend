@@ -1,8 +1,19 @@
 package stripe.backend.controller;
 
+import javax.websocket.server.PathParam;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.stripe.exception.StripeException;
 
@@ -56,13 +67,13 @@ public class StripeController {
         return ResponseEntity.ok(stripeService.couponCreate(percentageOff, duration, durationInMonth));
     }
 
-    @DeleteMapping("/cancelSubscription")
-    public ResponseEntity<GenericResponse> cancelSubscription(@RequestBody String subscriptionId) {
+    @DeleteMapping("/cancelSubscription/{subscriptionId}")
+    public ResponseEntity<GenericResponse> cancelSubscription(@PathVariable String subscriptionId) {
         return ResponseEntity.ok(stripeService.cancelSubscription(subscriptionId));
     }
 
     @GetMapping("/retrieveSubscription")
-    public ResponseEntity<GenericResponse> retrieveSubscription(String subscriptionId) {
+    public ResponseEntity<GenericResponse> retrieveSubscription(@RequestParam String subscriptionId) {
         return ResponseEntity.ok(stripeService.retrieveSubscriptionStatus(subscriptionId));
     }
 
@@ -119,7 +130,11 @@ public class StripeController {
 
     @GetMapping("/success")
     public ResponseEntity<GenericResponse> getCustomerAndSubscriptionDetails(@RequestParam String session_id) {
-        return ResponseEntity.ok(stripeService.getCustomerAndSubscriptionDetails(session_id));
+    	 HttpHeaders headers = new HttpHeaders();
+         headers.add("Location", "http://localhost:3000/?subscription_id="+stripeService.getCustomerAndSubscriptionDetails(session_id).getData());
+         ResponseEntity  responseEntity= new ResponseEntity(headers, HttpStatus.FOUND);
+//         responseEntity.ok(stripeService.getCustomerAndSubscriptionDetails(session_id));
+         return responseEntity;
     }
 
     @GetMapping("/cancel")
