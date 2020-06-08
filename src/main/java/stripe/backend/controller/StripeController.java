@@ -57,7 +57,7 @@ public class StripeController {
     }
 
     @DeleteMapping("/cancelSubscription")
-    public ResponseEntity<GenericResponse> cancelSubscription(String subscriptionId) {
+    public ResponseEntity<GenericResponse> cancelSubscription(@RequestBody String subscriptionId) {
         return ResponseEntity.ok(stripeService.cancelSubscription(subscriptionId));
     }
 
