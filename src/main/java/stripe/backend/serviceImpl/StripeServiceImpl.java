@@ -659,7 +659,7 @@ public class StripeServiceImpl implements StripeService {
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
             HttpEntity<String> request = new HttpEntity<String>(headers);
             restTemplate.exchange(REDIRECT_URL, HttpMethod.GET, request, String.class);
-            return APIResponseBuilder.build(true, invoice.toJson(), "Get Invoice successfully");
+            return APIResponseBuilder.build(true, invoice.getSubscription(), "Get Invoice successfully");
         } catch (StripeException e) {
             return APIResponseBuilder.build(false, e.getMessage(), "While getting customer and subscription detail");
         }
