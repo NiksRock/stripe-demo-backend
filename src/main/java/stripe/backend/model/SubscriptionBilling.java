@@ -36,6 +36,9 @@ class SubscriptionBilling {
     private Date createdDate;
 
     @Column
+    private Date endDate;
+
+    @Column
     private Date canceledDated;
 
     @Column
@@ -47,6 +50,9 @@ class SubscriptionBilling {
     @ManyToOne
     @JoinColumn(name = "passportPlanId")
     private PassportPlans passportPlans;
+
+    @Column
+    private String stripePlanId;
 
     @Column
     private Boolean cancelAtPeriodEnd;

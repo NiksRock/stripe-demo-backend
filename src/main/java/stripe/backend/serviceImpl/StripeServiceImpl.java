@@ -1,7 +1,10 @@
 package stripe.backend.serviceImpl;
 
-import java.util.*;
-
+import com.google.gson.Gson;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.*;
+import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,26 +13,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.Gson;
-import com.stripe.Stripe;
-import com.stripe.exception.StripeException;
-import com.stripe.model.Coupon;
-import com.stripe.model.CouponCollection;
-import com.stripe.model.Customer;
-import com.stripe.model.Invoice;
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.PaymentMethod;
-import com.stripe.model.PaymentSourceCollection;
-import com.stripe.model.Plan;
-import com.stripe.model.PlanCollection;
-import com.stripe.model.Product;
-import com.stripe.model.ProductCollection;
-import com.stripe.model.Subscription;
-import com.stripe.model.checkout.Session;
-import com.stripe.param.checkout.SessionCreateParams.SubscriptionData;
-import com.stripe.param.checkout.SessionCreateParams.SubscriptionData.Item;
-
 import org.springframework.web.client.RestTemplate;
 import stripe.backend.model.Members;
 import stripe.backend.model.SubscriptionBilling;
@@ -39,7 +22,8 @@ import stripe.backend.responseDTO.APIResponseBuilder;
 import stripe.backend.responseDTO.GenericResponse;
 import stripe.backend.service.StripeService;
 
-import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Service
 public class StripeServiceImpl implements StripeService {
@@ -367,11 +351,11 @@ public class StripeServiceImpl implements StripeService {
     public GenericResponse retrieveSubscriptionStatus(String subscriptionId) {
         try {
             Stripe.apiKey = API_SECRET_KEY;
-            if (subscriptionId != null && !subscriptionId.isEmpty()) {
-                Subscription subscription = Subscription.retrieve(subscriptionId);
+            Subscription subscription = Subscription.retrieve(subscriptionId);
+            if (subscription.getStatus().equalsIgnoreCase("active")) {
                 return APIResponseBuilder.build(true, subscription.toJson(), "Find subscription status for this Id " + subscriptionId + " status is " + subscription.getStatus());
             } else {
-                return APIResponseBuilder.build(true, null, "SubscriptionId is required");
+                return APIResponseBuilder.build(true, "Your subscription is not active yet");
             }
         } catch (StripeException e) {
             return APIResponseBuilder.build(false, e.getMessage(), "While fetching subscription status");
@@ -618,9 +602,10 @@ public class StripeServiceImpl implements StripeService {
             params.put("success_url", "http://localhost:8081/api/success?session_id={CHECKOUT_SESSION_ID}");
             params.put("cancel_url", "http://localhost:8081/api/cancel");
             Session session = Session.create(params);
-            return APIResponseBuilder.build(true, session.getId(), "Your have subscribed plan");
+
+            return APIResponseBuilder.build(true, session.getId(), "You have subscribed plan");
         } catch (Exception e) {
-            return APIResponseBuilder.build(false, e.getMessage(), "Your have subscribed plan");
+            return APIResponseBuilder.build(false, e.getMessage(), "Error while subscribe plan");
         }
 
     }
@@ -643,8 +628,14 @@ public class StripeServiceImpl implements StripeService {
             subscriptionBilling.setMembers(members);
             subscriptionBilling.setAmount(subscription.getPlan().getAmount());
             subscriptionBilling.setStatus(subscription.getStatus());
+            subscriptionBilling.setStripePlanId(subscription.getPlan().getId());
             String invoiceId = subscription.getLatestInvoice();
             Invoice invoice = Invoice.retrieve(invoiceId);
+
+            Timestamp stamp = new Timestamp(invoice.getPeriodEnd());
+            Date date = new Date(stamp.getTime());
+            subscriptionBilling.setEndDate(date);
+
             subscriptionBilling.setPaymentStatus(invoice.getStatus());
             subscriptionRepo.save(subscriptionBilling);
 
@@ -698,12 +689,13 @@ public class StripeServiceImpl implements StripeService {
                 Subscription reActivatedSubscription = Subscription.retrieve(subscriptionId);
                 SubscriptionBilling subscriptionBilling = subscriptionRepo.findByStripeSubscriptionId(reActivatedSubscription.getId());
                 subscriptionBilling.setCancelAtPeriodEnd(false);
+                subscriptionBilling.setCanceledDated(null);
                 subscriptionBilling.setReActivatedDate(new Date());
                 subscriptionRepo.save(subscriptionBilling);
                 return APIResponseBuilder.build(true, subscription.toJson(), "Your subscription is re-activated");
             }
         } catch (Exception e) {
-            return APIResponseBuilder.build(false, e.getMessage(),"Exception while update subscription");
+            return APIResponseBuilder.build(false, e.getMessage(), "Exception while update subscription");
         }
     }
 
@@ -722,10 +714,11 @@ public class StripeServiceImpl implements StripeService {
             subscriptionBilling.setStatus(canceledSubscription.getStatus());
             subscriptionBilling.setCanceledDated(new Date());
             subscriptionBilling.setCancelAtPeriodEnd(true);
+            subscriptionBilling.setReActivatedDate(null);
             subscriptionRepo.save(subscriptionBilling);
-            return APIResponseBuilder.build(true, subscription.toJson(),"Your subscription is cancel automatically at the period end");
+            return APIResponseBuilder.build(true, subscription.toJson(), "Your subscription is cancel automatically at the period end");
         } catch (Exception e) {
-            return APIResponseBuilder.build(false, e.getMessage(),"Exception while cancel subscription");
+            return APIResponseBuilder.build(false, e.getMessage(), "Exception while cancel subscription");
         }
     }
 
