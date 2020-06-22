@@ -352,8 +352,10 @@ public class StripeServiceImpl implements StripeService {
         try {
             Stripe.apiKey = API_SECRET_KEY;
             Subscription subscription = Subscription.retrieve(subscriptionId);
+            String invoiceId = subscription.getLatestInvoice();
+            Invoice invoice = Invoice.retrieve(invoiceId);
             if (subscription.getStatus().equalsIgnoreCase("active")) {
-                return APIResponseBuilder.build(true, subscription.toJson(), "Find subscription status for this Id " + subscriptionId + " status is " + subscription.getStatus());
+                return APIResponseBuilder.build(true, invoice.toJson(), "Find subscription status for this Id " + subscriptionId + " status is " + subscription.getStatus());
             } else {
                 return APIResponseBuilder.build(true, "Your subscription is not active yet");
             }
@@ -381,11 +383,11 @@ public class StripeServiceImpl implements StripeService {
                 //create subscription
                 String subId = this.subscription(customerId, plan);
                 if (subId == null) {
-                    return APIResponseBuilder.build(true, "An error occurred while trying to create a subscription.", "");
+                    return APIResponseBuilder.build(true, "An error occurred while trying to create a subscription.", subId);
                 }
                 Subscription subscription = Subscription.retrieve(subId);
                 if (subscription.getStatus().equalsIgnoreCase("incomplete") && subscription.getStatus().equalsIgnoreCase("trialing")) {
-                    return APIResponseBuilder.build(true, "Your payment is incomplete! please try again", "");
+                    return APIResponseBuilder.build(true, "Your payment is incomplete! please try again", subscription.getStatus());
                 }
                 Members members = membersRepo.findByCustomerId(customerId);
                 SubscriptionBilling subscriptionBilling = new SubscriptionBilling();
@@ -400,10 +402,10 @@ public class StripeServiceImpl implements StripeService {
                 subscriptionBilling.setPaymentStatus(invoice.getStatus());
                 //subscriptionBilling.setPassportPlans();
                 subscriptionRepo.save(subscriptionBilling);
-                return APIResponseBuilder.build(true, invoice.toJson(), "");
+                return APIResponseBuilder.build(true, invoice.toJson(), invoice.getPaid()?subId:"The customer must complete an additional authentication step.");
             }
         } catch (Exception e) {
-            return APIResponseBuilder.build(true, "An error while attached subscription to the customer", "");
+            return APIResponseBuilder.build(true, "An error while attached subscription to the customer", e.getMessage());
         }
         return null;
     }
@@ -534,7 +536,7 @@ public class StripeServiceImpl implements StripeService {
             if (paymentMethodId != null) {
                 PaymentIntentCreateParams createParams = PaymentIntentCreateParams.builder()
                         .setAmount(4900L)
-                        .setCurrency("inr")
+                        .setCurrency("usd")
                         .setReceiptEmail(email)
                         .setDescription("Event Payment")
                         .setOffSession(true)
@@ -565,10 +567,10 @@ public class StripeServiceImpl implements StripeService {
                 Subscription subscription = Subscription.retrieve(subscriptionBilling.getStripeSubscriptionId());
                 return APIResponseBuilder.build(true, subscription.toJson(), "Your have subscribed plan");
             } else {
-                return APIResponseBuilder.build(false, "This " + email + " is doesn't exist", "");
+                return APIResponseBuilder.build(false, "This " + email + " is doesn't exist", "This " + email + " is doesn't exist");
             }
         } catch (StripeException e) {
-            return APIResponseBuilder.build(false, e.getMessage(), "");
+            return APIResponseBuilder.build(false, e.getMessage(), e.getMessage());
         }
     }
 
